@@ -80,7 +80,7 @@ int main(void)
 
     Shader ourShader("shader.vs", "shader.fs");
 
-    ObjectLoader ourObj("teapot.obj");
+    ObjectLoader ourObj("cube.obj");
     float* vertices = ourObj.getVertices();
     unsigned int* indices = ourObj.getIndices();
 
@@ -143,14 +143,16 @@ int main(void)
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // binds buffer to array buffer target (all calls to GL_ARRAY_BUFFER will be to VBO
     glBufferData(GL_ARRAY_BUFFER, ourObj.getVerticesSize() * sizeof(float), vertices, GL_STATIC_DRAW); // sizeof = full byte storage for array
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // for triangles example
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, ourObj.getIndicesSize() * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); // for triangles example
 
     // Sending data to shaderProgram
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    /*glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);*/
+    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    //glEnableVertexAttribArray(1);
 
     // Translations for viewing
     glm::mat4 model = glm::mat4(1.0f);
@@ -203,6 +205,7 @@ int main(void)
         glBindVertexArray(VAO);
         //glDrawArrays(GL_TRIANGLES, 0, 36);
         glDrawElements(GL_TRIANGLES, ourObj.getIndicesSize(), GL_UNSIGNED_INT, 0);
+        //glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
         /* Swap front and back buffers */

@@ -178,6 +178,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="README.md" />
     <None Include="shader.fs" />
     <None Include="shader.vs" />
   </ItemGroup>

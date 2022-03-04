@@ -39,6 +39,7 @@
   <ItemGroup>
     <None Include="shader.vs" />
     <None Include="shader.fs" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Object Include="cube.obj" />
