@@ -1,7 +1,11 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "Shader.h"
+#include <Windows.h> // TODO change this
 
 // Callback function for handling resizing window.
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -55,26 +59,100 @@ int main(void)
         std::cout << "glew init err: " << glewGetErrorString(err) << std::endl;
         return -1;
     }
+    glEnable(GL_DEPTH_TEST);
 
     Shader ourShader("shader.vs", "shader.fs");
 
     // Array for the thingy
     /*float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
+    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+     0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f
+    };
+    unsigned int indices[] = {
+        0, 1, 2
     };*/
 
     // Arrays for rectangle
+    //float vertices[] = {
+    //    0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // top right
+    //    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+    //    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom left
+    //    -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f   // top left 
+    //};
+    //unsigned int indices[] = {
+    //    0, 1, 3,
+    //    1, 2, 3
+    //};
+
+    // Arrays for cube
+    /*float vertices[] = {
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f
+    };*/
     float vertices[] = {
-        0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // top right
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f   // top left 
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,  // top right front
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, // top left front
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, // bottom right front
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, // bottom left front
+
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // top right back
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // top left back
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom right back
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f // bottom left back
     };
     unsigned int indices[] = {
-        0, 1, 3,
-        1, 2, 3
+        0, 1, 2, //front
+        1, 2, 3,
+        0, 1, 4, //top
+        1, 5, 4,
+        0, 4, 6,  //right
+        0, 2, 6,
+        1, 5, 7,  //left
+        1, 3, 7,
+        2, 3, 6, //bottom
+        3, 7, 6,
+        4, 5, 6, //back
+        5, 6, 7
     };
 
     // Buffer object
@@ -94,6 +172,13 @@ int main(void)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0, 0.0f, 0.0f));
+    glm::mat4 view = glm::mat4(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -102,7 +187,7 @@ int main(void)
 
         /* Render here */
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         if (input == 0) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
@@ -110,17 +195,25 @@ int main(void)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
 
+        ourShader.use();
+
         // Draw stuff
         /*float timeValue = glfwGetTime();
         float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
         int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");*/
-        ourShader.use();
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.5f, 1.0f, 0.0f));
+        int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
         //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
         // Render squares
         glBindVertexArray(VAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
         /* Swap front and back buffers */
