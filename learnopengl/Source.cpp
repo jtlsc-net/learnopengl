@@ -22,17 +22,29 @@ int processInput(GLFWwindow* window) {
     else if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
         return 1;
     }
-    else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+    else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         return 2;
     }
-    else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+    else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         return 3;
     }
-    else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+    else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
         return 4;
     }
-    else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+    else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
         return 5;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+        return 6;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
+        return 7;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
+        return 8;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
+        return 9;
     }
     return 0;
 }
@@ -184,7 +196,22 @@ int main(void)
             view = glm::translate(view, glm::vec3(0.0f, 0.0f, 0.01f));
         }
         if (input == 4) {
-            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.5f, 1.0f, 0.0f));
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.5f, 0.0f, 0.0f));
+        }
+        if (input == 5) {
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.0f, 0.0f, 0.5f));
+        }
+        if (input == 6) {
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(-0.5f, 0.0f, 0.0f));
+        }
+        if (input == 7) {
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.0f, 0.0f, -0.5f));
+        }
+        if (input == 8) {
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.0f, 0.5f, 0.0f));
+        }
+        if (input == 9) {
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.0f, -0.5f, 0.0f));
         }
 
         ourShader.use();
