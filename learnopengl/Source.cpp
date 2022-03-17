@@ -46,6 +46,9 @@ int processInput(GLFWwindow* window) {
     else if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
         return 9;
     }
+    else if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
+        return 10;
+    }
     return 0;
 }
 
@@ -92,60 +95,24 @@ int main(void)
 
     Shader ourShader("shader.vs", "shader.fs");
 
-    ObjectLoader ourObj("cube.obj");
+    ObjectLoader ourObj("castle.obj");
     float* vertices = ourObj.getVertices();
+    float* vertexNormals = ourObj.getVertexNormals();
     unsigned int* indices = ourObj.getIndices();
 
-    // Array for the triangle
-    /*float vertices[] = {
-    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-     0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f
-    };
-    unsigned int indices[] = {
-        0, 1, 2
-    };*/
-
-    // Arrays for rectangle
-    //float vertices[] = {
-    //    0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // top right
-    //    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // bottom right
-    //    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom left
-    //    -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f   // top left 
-    //};
-    //unsigned int indices[] = {
-    //    0, 1, 3,
-    //    1, 2, 3
-    //};
-
-    // Arrays for cube
-    //float vertices[] = {
-    //    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,  // top right front
-    //    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, // top left front
-    //    0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, // bottom right front
-    //    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, // bottom left front
-
-    //    0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // top right back
-    //    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // top left back
-    //    0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom right back
-    //    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f // bottom left back
-    //};
-    //unsigned int indices[] = {
-    //    0, 1, 2, //front
-    //    1, 2, 3,
-    //    0, 1, 4, //top
-    //    1, 5, 4,
-    //    0, 4, 6,  //right
-    //    0, 2, 6,
-    //    1, 5, 7,  //left
-    //    1, 3, 7,
-    //    2, 3, 6, //bottom
-    //    3, 7, 6,
-    //    4, 5, 6, //back
-    //    5, 6, 7
-    //};
-
-
+    if (ourObj.getHasVertexNormals()) {
+        std::cout << "START VERTEX NORMALS" << std::endl;
+        for (int i = 0; i < ourObj.getVertexNormalsSize(); i++) {
+            std::cout << *(vertexNormals + i) << " ";
+            if ((i + 1) % 3 == 0) {
+                std::cout << std::endl;
+            }
+        }
+        std::cout << "\nEND VERTEX NORMALS" << std::endl;
+    }
+    else {
+        std::cout << "OBJ FILE DOES NOT HAVE VERTEX NORMALS" << std::endl;
+    }
 
     // Buffer object
     unsigned int VBO, VAO, EBO;
@@ -174,6 +141,7 @@ int main(void)
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
+    bool showDepthOff = false;  // Initialize false so program automatically sets bool.
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -183,17 +151,46 @@ int main(void)
         /* Render here */
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        if (input == 0) {
+        switch (input) {
+        case 0:  // Set defaults for rendering.
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            if (!showDepthOff) {  // Optimization so we don't send a uniform to gpu every frame.
+                ourShader.setBool("showDepth", false);
+                showDepthOff = true;
+            }
+            break;
+        case 1:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); break;
+        case 2:
+            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -0.1f)); break;
+        case 3:
+            view = glm::translate(view, glm::vec3(0.0f, 0.0f, 0.1f)); break;
+        case 4:
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.5f, 0.0f, 0.0f)); break;
+        case 5:
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.0f, 0.0f, 0.5f)); break;
+        case 6:
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(-0.5f, 0.0f, 0.0f)); break;
+        case 7:
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.0f, 0.0f, -0.5f)); break;
+        case 8:
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.0f, 0.5f, 0.0f)); break;
+        case 9:
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.0f, -0.5f, 0.0f)); break;
+        case 10:
+            ourShader.setBool("showDepth", true); showDepthOff = false; break;
+        }
+       /* if (input == 0) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
         if (input == 1) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
         if (input == 2) {
-            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -0.01f));
+            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -0.1f));
         }
         if (input == 3) {
-            view = glm::translate(view, glm::vec3(0.0f, 0.0f, 0.01f));
+            view = glm::translate(view, glm::vec3(0.0f, 0.0f, 0.1f));
         }
         if (input == 4) {
             model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.5f, 0.0f, 0.0f));
@@ -212,7 +209,7 @@ int main(void)
         }
         if (input == 9) {
             model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.005f), glm::vec3(0.0f, -0.5f, 0.0f));
-        }
+        }*/
 
         ourShader.use();
 

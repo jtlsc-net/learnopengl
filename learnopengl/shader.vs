@@ -8,5 +8,5 @@ out vec3 ourColor;
 void main()
 {
 	gl_Position = projection * view * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);
-	ourColor= vec3(1.0, 1.0, 1.0);
+	ourColor= vec3(0.5, 0.5, 0.5);
 }
