@@ -63,6 +63,14 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 	return Mesh(vertices, indices);
 }
 
+std::vector<Mesh> Model::getMeshes() {
+	return meshes;
+}
+
+Mesh Model::getMesh() {
+	return meshes[0];
+}
+
 void Model::Delete() {
 	for (unsigned int i = 0; i < meshes.size(); i++) {
 		meshes[i].Delete();

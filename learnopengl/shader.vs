@@ -36,9 +36,10 @@ void main()
 	}
 	else{ // FragPos and Normal output default vals
 		ourColor = vec3(0.0, 0.8, 0.3);
-		FragPos = vec3(0.0, 0.0, 0.0);
-		Normal = vec3(0.0, 0.0, 0.0);
+		FragPos = vec3(model * vec4(aPos, 1.0));
+		Normal = vec3(model * vec4(nPos, 1.0));
 		lightAdjusted = vec3(0.0f);
+		// lightAdjusted = vec3(model * vec4(lightPos, 1.0));
 	}
 	gl_Position = projection * view * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);
 }

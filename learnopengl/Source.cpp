@@ -7,8 +7,8 @@
 #include "Shader.h"
 #include "ObjectLoader.h"
 #include "Model.h"
-#include "btBulletDynamicsCommon.h"
-#include <bullet/BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
+#include "Physics.h"
+#include <cmath>
 
 #include <Windows.h> // TODO change this
 #define GLM_ENABLE_EXPERIMENTAL
@@ -117,51 +117,54 @@ int main(void)
     }
     glEnable(GL_DEPTH_TEST);
 
-    btBroadphaseInterface* broadphase = new btDbvtBroadphase();
-    btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-    btGImpactCollisionAlgorithm::registerAlgorithm(dispatcher);
-    btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-    btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    dynamicsWorld->setGravity(btVector3(0, -10, 0));
-    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-    btCollisionShape* fallShape = new btSphereShape(1);
-    btCollisionShape* fallShape2 = new btSphereShape(2);
+    //btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+    //btCollisionShape* fallShape = new btSphereShape(1);
+    //btCollisionShape* fallShape2 = new btSphereShape(2);
 
-    // Create info for ground and add to world
-    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-    btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
-    dynamicsWorld->addRigidBody(groundRigidBody);
+    //// Create info for ground and add to world
+    //btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    //btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+    //btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
+    //dynamicsWorld->addRigidBody(groundRigidBody);
 
-    // Create info for sphere and add to world
-    // 50m above ground
-    btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 50, 0)));
-    btScalar mass = 1;
-    btVector3 fallInertia(0, 0, 0);
-    fallShape->calculateLocalInertia(mass, fallInertia);
-    btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
-    btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
-    dynamicsWorld->addRigidBody(fallRigidBody);
+    //// Create info for sphere and add to world
+    //// 50m above ground
+    //btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 50, 0)));
+    //btScalar mass = 1;
+    //btVector3 fallInertia(0, 0, 0);
+    //fallShape->calculateLocalInertia(mass, fallInertia);
+    //btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
+    //btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
+    //dynamicsWorld->addRigidBody(fallRigidBody);
 
-    // Sphere 2
-    btDefaultMotionState* fallMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0.1f, 60, 0)));
-    btScalar mass2 = 2;
-    btVector3 fallInertia2(0, 0, 0);
-    fallShape2->calculateLocalInertia(mass2, fallInertia2);
-    btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI2(mass2, fallMotionState2, fallShape2, fallInertia2);
-    btRigidBody* fallRigidBody2 = new btRigidBody(fallRigidBodyCI2);
-    dynamicsWorld->addRigidBody(fallRigidBody2);
+    //// Sphere 2
+    //btDefaultMotionState* fallMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0.1f, 60, 0)));
+    //btScalar mass2 = 2;
+    //btVector3 fallInertia2(0, 0, 0);
+    //fallShape2->calculateLocalInertia(mass2, fallInertia2);
+    //btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI2(mass2, fallMotionState2, fallShape2, fallInertia2);
+    //btRigidBody* fallRigidBody2 = new btRigidBody(fallRigidBodyCI2);
+    //dynamicsWorld->addRigidBody(fallRigidBody2);
 
     Shader ourShader("shader.vs", "shader.fs");
 
     std::string modelFile = "sphere.obj";
     Model ourModel(&modelFile[0]);
 
+    std::string modelFile2 = "sphere2.obj";
+    Model ourModel2(&modelFile2[0]);
+
+    std::string modelFile3 = "plane.obj";
+    Model ourModel3(&modelFile3[0]);
+
+    Physics * physics = new Physics();
+    physics->LoadMesh(&ourModel);
+
     glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 groundModel = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -6.0f));
+    view = glm::translate(view, glm::vec3(0.0f, -1.0f, -6.0f));
 
     glm::vec3 translationA(200.0f, 200.0f, 0.0f);
     glm::vec3 translationB(400.0f, 200.0f, 0.0f);
@@ -225,15 +228,15 @@ int main(void)
             model = glm::scale(model, glm::vec3(0.99f));
         }
 
-        dynamicsWorld->stepSimulation(deltaTime, 10);
+        /*dynamicsWorld->stepSimulation(deltaTime, 10);
         btTransform trans;
         btTransform trans2;
         fallRigidBody->getMotionState()->getWorldTransform(trans);
-        fallRigidBody2->getMotionState()->getWorldTransform(trans2);
+        fallRigidBody2->getMotionState()->getWorldTransform(trans2);*/
 
         
-        ourShader.setMatrix4fv("model", glm::translate(model, 
-            glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ())));
+        /*ourShader.setMatrix4fv("model", glm::translate(model, 
+              glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ())));*/
         //ourShader.setMatrix4fv("model", glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)));
         ourShader.setMatrix4fv("view", view);
         ourShader.setMatrix4fv("projection", projection);
@@ -244,30 +247,14 @@ int main(void)
 
         ourModel.Draw(ourShader);
 
-        ourShader.setMatrix4fv("model", glm::translate(model,
-            glm::vec3(trans2.getOrigin().getX(), trans2.getOrigin().getY(), trans2.getOrigin().getZ())));
+        /*ourShader.setMatrix4fv("model", glm::translate(model,
+            glm::vec3(trans2.getOrigin().getX(), trans2.getOrigin().getY(), trans2.getOrigin().getZ())));*/
 
-        ourModel.Draw(ourShader);
+        ourModel2.Draw(ourShader);
 
+        ourShader.setMatrix4fv("model", glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)));
 
-        // Draw stuff
-        /*float timeValue = glfwGetTime();
-        float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");*/
-        /*int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        int viewLoc = glGetUniformLocation(ourShader.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));*/
-        //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
-        // Render squares
-        //glBindVertexArray(VAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 36);
-        //glDrawElements(GL_TRIANGLES, ourObj.getIndicesSize(), GL_UNSIGNED_INT, 0);
-        //glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-        //glBindVertexArray(0);
+        ourModel3.Draw(ourShader);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -280,7 +267,7 @@ int main(void)
     ourModel.Delete();
     ourShader.deleteProgram();
 
-    dynamicsWorld->removeRigidBody(fallRigidBody2);
+   /* dynamicsWorld->removeRigidBody(fallRigidBody2);
     delete fallRigidBody2->getMotionState();
     delete fallRigidBody2;
 
@@ -298,7 +285,7 @@ int main(void)
     delete solver;
     delete dispatcher;
     delete collisionConfiguration;
-    delete broadphase;
+    delete broadphase;*/
 
     glfwTerminate();
     return 0;

@@ -21,6 +21,8 @@ public:
 	Model(std::string path);
 	void Draw(Shader& shader);
 	void Delete();
+	std::vector<Mesh> getMeshes();
+	Mesh getMesh();
 private:
 	std::vector<Mesh> meshes;
 	std::string directory;
