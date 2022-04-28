@@ -158,7 +158,23 @@ int main(void)
     Model ourModel3(&modelFile3[0]);
 
     Physics * physics = new Physics();
-    physics->LoadMesh(&ourModel);
+    RigidBodyInfo RBI;
+    RBI.position = btVector3(0, -1, 0);
+    RBI.mass = 0;
+    RBI.fallInertia = btVector3(0, 0, 0);
+    std::vector<int>params = { 0, 1, 0, 1 };
+    physics->LoadMesh(&ourModel3, params, ShapeType::plane);
+    int groundIndex = 0;
+    physics->AddBody(RBI, groundIndex);
+
+    RBI.position = btVector3(0, 50, 0);
+    RBI.mass = 1;
+    params = { 1 };
+    physics->LoadMesh(&ourModel, params, ShapeType::sphere);
+    int sphere1Index = 1;
+    physics->AddBody(RBI, sphere1Index);
+
+
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 groundModel = glm::mat4(1.0f);
@@ -199,7 +215,7 @@ int main(void)
         case 1:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); break;
         case 2: // s
-            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -6.0f * deltaTime)); break;
+            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -15.0f * deltaTime)); break;
         case 3: // w
             view = glm::translate(view, glm::vec3(0.0f, 0.0f, 6.0f * deltaTime)); break;
         case 4: // k
@@ -234,9 +250,10 @@ int main(void)
         fallRigidBody->getMotionState()->getWorldTransform(trans);
         fallRigidBody2->getMotionState()->getWorldTransform(trans2);*/
 
-        
-        /*ourShader.setMatrix4fv("model", glm::translate(model, 
-              glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ())));*/
+        physics->Update(deltaTime, 10);
+
+        btVector3 pos = physics->getPos(sphere1Index);
+        ourShader.setMatrix4fv("model", glm::translate(model, glm::vec3(pos[0], pos[1], pos[2])));
         //ourShader.setMatrix4fv("model", glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)));
         ourShader.setMatrix4fv("view", view);
         ourShader.setMatrix4fv("projection", projection);
@@ -267,25 +284,7 @@ int main(void)
     ourModel.Delete();
     ourShader.deleteProgram();
 
-   /* dynamicsWorld->removeRigidBody(fallRigidBody2);
-    delete fallRigidBody2->getMotionState();
-    delete fallRigidBody2;
-
-    dynamicsWorld->removeRigidBody(fallRigidBody);
-    delete fallRigidBody->getMotionState();
-    delete fallRigidBody;
-
-    dynamicsWorld->removeRigidBody(groundRigidBody);
-    delete groundRigidBody->getMotionState();
-    delete groundRigidBody;
-
-    delete groundShape;
-    delete fallShape;
-    delete dynamicsWorld;
-    delete solver;
-    delete dispatcher;
-    delete collisionConfiguration;
-    delete broadphase;*/
+    physics->Delete();
 
     glfwTerminate();
     return 0;
