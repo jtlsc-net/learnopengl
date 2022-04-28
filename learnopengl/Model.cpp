@@ -59,7 +59,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 			indices.push_back(face.mIndices[j]);
 		}
 	}
-
 	return Mesh(vertices, indices);
 }
 

@@ -100,7 +100,7 @@ btRigidBody* createBall(btDiscreteDynamicsWorld* dynamicsWorld) {
     // Create info for sphere and add to world
     // 50m above ground
     btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 30, 0)));
-    btScalar mass = 1;
+    btScalar mass = 5;
     btVector3 fallInertia(0, 0, 0);
     fallShape->calculateLocalInertia(mass, fallInertia);
     btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
@@ -166,66 +166,66 @@ int main(void)
     std::string modelFile = "sphere.obj";
     Model ourModel(&modelFile[0]);
 
-    std::string modelFile2 = "sphere2.obj";
-    Model ourModel2(&modelFile2[0]);
-
     std::string modelFile3 = "plane.obj";
     Model ourModel3(&modelFile3[0]);
 
-    std::string modelFile4 = "wedge.obj";
-    Model wedgeModel1(&modelFile4[0]);
+    std::string modelFile4 = "slide1.obj";
+    Model slideModel1(&modelFile4[0]);
 
-    std::string modelFile5 = "wedge2.obj";
-    Model wedgeModel2(&modelFile5[0]);
+    //std::string modelFile5 = "wedge2.obj";
+    //Model wedgeModel2(&modelFile5[0]);
 
     btDiscreteDynamicsWorld* dynamicsWorld = initPhysics();
     btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-    btCollisionShape* fallShape2 = new btSphereShape(2);
-    btConvexHullShape* wedgeShape = new btConvexHullShape;
-    Mesh mesh = wedgeModel1.getMesh();
-    for (std::vector<Vertex>::iterator it = mesh.vertices.begin(); it != mesh.vertices.end(); it++) {
-        wedgeShape->addPoint(btVector3((*it).Position[0], (*it).Position[1], (*it).Position[2]));
+    //btConvexHullShape* slideShape = new btConvexHullShape;
+    //Mesh mesh = slideModel1.getMesh();
+    //for (std::vector<Vertex>::iterator it = mesh.vertices.begin(); it != mesh.vertices.end(); it++) {
+    //    slideShape->addPoint(btVector3((*it).Position[0], (*it).Position[1], (*it).Position[2]));
+    //}
+    //slideShape->optimizeConvexHull();
+    // Code for triangles https://stackoverflow.com/questions/24253560/bullet-btbvhtrianglemeshshape-not-colliding
+    btTriangleMesh* tMesh = new btTriangleMesh();
+    Mesh mesh = slideModel1.getMesh();
+    std::vector<unsigned int> indices = mesh.indices;
+    std::vector<Vertex> vertices = mesh.vertices;
+    std::vector<unsigned int>::iterator it = indices.end();
+    for (int i = 0; i < indices.size() - 2; i+=3) {
+        glm::vec3 vert1 = vertices[indices[i]].Position;
+        glm::vec3 vert2 = vertices[indices[i + 1]].Position;
+        glm::vec3 vert3 = vertices[indices[i + 2]].Position;
+        tMesh->addTriangle(btVector3(vert1[0], vert1[1], vert1[2]), btVector3(vert2[0], vert2[1], vert2[2]), btVector3(vert3[0], vert3[1], vert3[2]));
     }
-    wedgeShape->optimizeConvexHull();
-    btConvexHullShape* wedgeShape2 = new btConvexHullShape;
-    Mesh mesh2 = wedgeModel2.getMesh();
-    for (std::vector<Vertex>::iterator it = mesh2.vertices.begin(); it != mesh2.vertices.end(); it++) {
-        wedgeShape2->addPoint(btVector3((*it).Position[0], (*it).Position[1], (*it).Position[2]));
-    }
-    wedgeShape2->optimizeConvexHull();
+    btCollisionShape* slideShape = new btBvhTriangleMeshShape(tMesh, false);
+
+    //btConvexHullShape* wedgeShape2 = new btConvexHullShape;
+    //Mesh mesh2 = wedgeModel2.getMesh();
+    //for (std::vector<Vertex>::iterator it = mesh2.vertices.begin(); it != mesh2.vertices.end(); it++) {
+    //    wedgeShape2->addPoint(btVector3((*it).Position[0], (*it).Position[1], (*it).Position[2]));
+    //}
+    //wedgeShape2->optimizeConvexHull();
 
     // Create info for ground and add to world
     btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
     btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
     dynamicsWorld->addRigidBody(groundRigidBody);
-
     // First ball
     btRigidBody* fallRigidBody = createBall(dynamicsWorld);
 
-    // Sphere 2
-    btDefaultMotionState* fallMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0.1f, 40, 0)));
-    btScalar mass2 = 2;
-    btVector3 fallInertia2(0, 0, 0);
-    fallShape2->calculateLocalInertia(mass2, fallInertia2);
-    btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI2(mass2, fallMotionState2, fallShape2, fallInertia2);
-    btRigidBody* fallRigidBody2 = new btRigidBody(fallRigidBodyCI2);
-    dynamicsWorld->addRigidBody(fallRigidBody2);
-
     // Wedge 1
-    btDefaultMotionState* wedgeMotionState1 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 20, 0)));
-    btScalar massWedge = 0;
-    btVector3 fallInertiaWedge(0, 0, 0);
-    wedgeShape->calculateLocalInertia(massWedge, fallInertiaWedge);
-    btRigidBody::btRigidBodyConstructionInfo wedgeRigidBodyCI(massWedge, wedgeMotionState1, wedgeShape, fallInertiaWedge);
-    btRigidBody* wedgeRigidBody = new btRigidBody(wedgeRigidBodyCI);
-    dynamicsWorld->addRigidBody(wedgeRigidBody);
+    btDefaultMotionState* slideMotionState1 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 20, 0)));
+    btScalar massSlide = 0;
+    btVector3 fallInertiaSlide(0, 0, 0);
+    //  slideShape->calculateLocalInertia(massSlide, fallInertiaSlide);
+    btRigidBody::btRigidBodyConstructionInfo slideRigidBodyCI(massSlide, slideMotionState1, slideShape, fallInertiaSlide);
+    btRigidBody* slideRigidBody = new btRigidBody(slideRigidBodyCI);
+    dynamicsWorld->addRigidBody(slideRigidBody);
 
     // Wedge 2
-    btDefaultMotionState* wedgeMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 10, 7)));
-    btRigidBody::btRigidBodyConstructionInfo wedgeRigidBodyCI2(massWedge, wedgeMotionState2, wedgeShape2, fallInertiaWedge);
-    btRigidBody* wedgeRigidBody2 = new btRigidBody(wedgeRigidBodyCI2);
-    dynamicsWorld->addRigidBody(wedgeRigidBody2);
+    //btDefaultMotionState* wedgeMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 10, 7)));
+    //btRigidBody::btRigidBodyConstructionInfo wedgeRigidBodyCI2(massWedge, wedgeMotionState2, wedgeShape2, fallInertiaWedge);
+    //btRigidBody* wedgeRigidBody2 = new btRigidBody(wedgeRigidBodyCI2);
+    //dynamicsWorld->addRigidBody(wedgeRigidBody2);
 
 
 
@@ -328,13 +328,11 @@ int main(void)
 
         dynamicsWorld->stepSimulation(deltaTime, 10);
         btTransform trans;
-        btTransform trans2;
         btTransform trans3;
-        btTransform trans4;
+        //btTransform trans4;
         fallRigidBody->getMotionState()->getWorldTransform(trans);
-        fallRigidBody2->getMotionState()->getWorldTransform(trans2);
-        wedgeRigidBody->getMotionState()->getWorldTransform(trans3);
-        wedgeRigidBody2->getMotionState()->getWorldTransform(trans4);
+        slideRigidBody->getMotionState()->getWorldTransform(trans3);
+        //wedgeRigidBody2->getMotionState()->getWorldTransform(trans4);
 
         //physics->Update(deltaTime, 10);
 
@@ -351,11 +349,6 @@ int main(void)
 
         ourModel.Draw(ourShader);
 
-        ourShader.setMatrix4fv("model", glm::translate(model,
-            glm::vec3(trans2.getOrigin().getX(), trans2.getOrigin().getY(), trans2.getOrigin().getZ())));
-
-        ourModel2.Draw(ourShader);
-
         ourShader.setMatrix4fv("model", glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)));
 
         ourModel3.Draw(ourShader);
@@ -363,12 +356,12 @@ int main(void)
         ourShader.setMatrix4fv("model", glm::translate(model,
             glm::vec3(trans3.getOrigin().getX(), trans3.getOrigin().getY(), trans3.getOrigin().getZ())));
 
-        wedgeModel1.Draw(ourShader);
+        slideModel1.Draw(ourShader);
 
-        ourShader.setMatrix4fv("model", glm::translate(model,
+ /*       ourShader.setMatrix4fv("model", glm::translate(model,
             glm::vec3(trans4.getOrigin().getX(), trans4.getOrigin().getY(), trans4.getOrigin().getZ())));
 
-        wedgeModel2.Draw(ourShader);
+        wedgeModel2.Draw(ourShader);*/
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -383,26 +376,20 @@ int main(void)
 
  /*   physics->Delete();*/
 
-    dynamicsWorld->removeRigidBody(wedgeRigidBody2);
-    delete wedgeRigidBody2->getMotionState();
-    delete wedgeRigidBody2;
+    //dynamicsWorld->removeRigidBody(wedgeRigidBody2);
+    //delete wedgeRigidBody2->getMotionState();
+    //delete wedgeRigidBody2;
 
-    dynamicsWorld->removeRigidBody(wedgeRigidBody);
-    delete wedgeRigidBody->getMotionState();
-    delete wedgeRigidBody;
-
-    dynamicsWorld->removeRigidBody(fallRigidBody2);
-    delete fallRigidBody2->getMotionState();
-    delete fallRigidBody2;
+    dynamicsWorld->removeRigidBody(slideRigidBody);
+    delete slideRigidBody->getMotionState();
+    delete slideRigidBody;
 
 
     dynamicsWorld->removeRigidBody(groundRigidBody);
     delete groundRigidBody->getMotionState();
     delete groundRigidBody;
 
-    delete fallShape2;
-    delete wedgeShape;
-    delete wedgeShape2;
+    delete slideShape;
     delete groundShape;
     delete dynamicsWorld;
     delete solver;
