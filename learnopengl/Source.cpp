@@ -94,13 +94,48 @@ btDiscreteDynamicsWorld* initPhysics() {
     return dynamicsWorld;
 }
 
+btCollisionShape* makeTriangles(Model model) {
+    // Code for triangles https://stackoverflow.com/questions/24253560/bullet-btbvhtrianglemeshshape-not-colliding
+    btTriangleMesh* tMesh = new btTriangleMesh();
+    Mesh mesh = model.getMesh();
+    std::vector<unsigned int> indices = mesh.indices;
+    std::vector<Vertex> vertices = mesh.vertices;
+    std::vector<unsigned int>::iterator it = indices.end();
+    for (int i = 0; i < indices.size() - 2; i += 3) {
+        glm::vec3 vert1 = vertices[indices[i]].Position;
+        glm::vec3 vert2 = vertices[indices[i + 1]].Position;
+        glm::vec3 vert3 = vertices[indices[i + 2]].Position;
+        tMesh->addTriangle(btVector3(vert1[0], vert1[1], vert1[2]), btVector3(vert2[0], vert2[1], vert2[2]), btVector3(vert3[0], vert3[1], vert3[2]));
+    }
+    return new btBvhTriangleMeshShape(tMesh, false);
+}
+
+btRigidBody* createScenery(btDiscreteDynamicsWorld* dynamicsWorld, btCollisionShape* shape, btVector3 posVector) {
+    btDefaultMotionState* MotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), posVector));
+    btVector3 Inertia(0, 0, 0);
+    btRigidBody::btRigidBodyConstructionInfo RigidBodyCI(0, MotionState, shape, Inertia);
+    btRigidBody* RigidBody = new btRigidBody(RigidBodyCI);
+    dynamicsWorld->addRigidBody(RigidBody);
+    return RigidBody;
+}
+
+// ANGLE IN RADIANS
+btTransform rotateBullet(btVector3 axis, btScalar angle) {
+    // From https://stackoverflow.com/questions/8196634/how-to-apply-rotation-to-a-body-in-bullet-physics-engine
+    btTransform tr;
+    tr.setIdentity();
+    btQuaternion quat;
+    quat.setEuler(axis[1]*angle, axis[2]*angle, axis[0]*angle);
+    tr.setRotation(quat);
+    return tr;
+}
 
 btRigidBody* createBall(btDiscreteDynamicsWorld* dynamicsWorld) {
     btCollisionShape* fallShape = new btSphereShape(1);
     // Create info for sphere and add to world
     // 50m above ground
-    btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 30, 0)));
-    btScalar mass = 5;
+    btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 40, 0)));
+    btScalar mass = 10;
     btVector3 fallInertia(0, 0, 0);
     fallShape->calculateLocalInertia(mass, fallInertia);
     btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
@@ -172,37 +207,28 @@ int main(void)
     std::string modelFile4 = "slide1.obj";
     Model slideModel1(&modelFile4[0]);
 
+    std::string modelFile5 = "funnel.obj";
+    Model funnelModel(&modelFile5[0]);
+    
+    std::string modelFile6 = "bend1.obj";
+    Model bendModel1(&modelFile6[0]);
+
+    std::string modelFile7 = "helix.obj";
+    Model helixModel(&modelFile7[0]);
+
+    std::string modelFile8 = "landing.obj";
+    Model landingModel(&modelFile8[0]);
+
     //std::string modelFile5 = "wedge2.obj";
     //Model wedgeModel2(&modelFile5[0]);
 
     btDiscreteDynamicsWorld* dynamicsWorld = initPhysics();
     btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-    //btConvexHullShape* slideShape = new btConvexHullShape;
-    //Mesh mesh = slideModel1.getMesh();
-    //for (std::vector<Vertex>::iterator it = mesh.vertices.begin(); it != mesh.vertices.end(); it++) {
-    //    slideShape->addPoint(btVector3((*it).Position[0], (*it).Position[1], (*it).Position[2]));
-    //}
-    //slideShape->optimizeConvexHull();
-    // Code for triangles https://stackoverflow.com/questions/24253560/bullet-btbvhtrianglemeshshape-not-colliding
-    btTriangleMesh* tMesh = new btTriangleMesh();
-    Mesh mesh = slideModel1.getMesh();
-    std::vector<unsigned int> indices = mesh.indices;
-    std::vector<Vertex> vertices = mesh.vertices;
-    std::vector<unsigned int>::iterator it = indices.end();
-    for (int i = 0; i < indices.size() - 2; i+=3) {
-        glm::vec3 vert1 = vertices[indices[i]].Position;
-        glm::vec3 vert2 = vertices[indices[i + 1]].Position;
-        glm::vec3 vert3 = vertices[indices[i + 2]].Position;
-        tMesh->addTriangle(btVector3(vert1[0], vert1[1], vert1[2]), btVector3(vert2[0], vert2[1], vert2[2]), btVector3(vert3[0], vert3[1], vert3[2]));
-    }
-    btCollisionShape* slideShape = new btBvhTriangleMeshShape(tMesh, false);
-
-    //btConvexHullShape* wedgeShape2 = new btConvexHullShape;
-    //Mesh mesh2 = wedgeModel2.getMesh();
-    //for (std::vector<Vertex>::iterator it = mesh2.vertices.begin(); it != mesh2.vertices.end(); it++) {
-    //    wedgeShape2->addPoint(btVector3((*it).Position[0], (*it).Position[1], (*it).Position[2]));
-    //}
-    //wedgeShape2->optimizeConvexHull();
+    btCollisionShape* slideShape = makeTriangles(slideModel1);
+    btCollisionShape* funnelShape = makeTriangles(funnelModel);
+    btCollisionShape* bendShape1 = makeTriangles(bendModel1);
+    btCollisionShape* helixShape = makeTriangles(helixModel);
+    btCollisionShape* landingShape = makeTriangles(landingModel);
 
     // Create info for ground and add to world
     btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
@@ -211,53 +237,23 @@ int main(void)
     dynamicsWorld->addRigidBody(groundRigidBody);
     // First ball
     btRigidBody* fallRigidBody = createBall(dynamicsWorld);
-
-    // Wedge 1
-    btDefaultMotionState* slideMotionState1 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 20, 0)));
-    btScalar massSlide = 0;
-    btVector3 fallInertiaSlide(0, 0, 0);
-    //  slideShape->calculateLocalInertia(massSlide, fallInertiaSlide);
-    btRigidBody::btRigidBodyConstructionInfo slideRigidBodyCI(massSlide, slideMotionState1, slideShape, fallInertiaSlide);
-    btRigidBody* slideRigidBody = new btRigidBody(slideRigidBodyCI);
-    dynamicsWorld->addRigidBody(slideRigidBody);
-
-    // Wedge 2
-    //btDefaultMotionState* wedgeMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 10, 7)));
-    //btRigidBody::btRigidBodyConstructionInfo wedgeRigidBodyCI2(massWedge, wedgeMotionState2, wedgeShape2, fallInertiaWedge);
-    //btRigidBody* wedgeRigidBody2 = new btRigidBody(wedgeRigidBodyCI2);
-    //dynamicsWorld->addRigidBody(wedgeRigidBody2);
-
-
-
- /*   Physics * physics = new Physics();
-    RigidBodyInfo RBI;
-    RBI.position = btVector3(0, -1, 0);
-    RBI.mass = 0;
-    RBI.fallInertia = btVector3(0, 0, 0);
-    std::vector<int>params = { 0, 1, 0, 1 };
-    physics->LoadMesh(&ourModel3, params, ShapeType::plane);
-    int groundIndex = 0;
-    physics->AddBody(RBI, groundIndex);
-
-    RBI.position = btVector3(0, 50, 0);
-    RBI.mass = 1;
-    params = { 1 };
-    physics->LoadMesh(&ourModel, params, ShapeType::sphere);
-    int sphere1Index = 1;
-    physics->AddBody(RBI, sphere1Index);*/
-
-
+    btRigidBody* slideRigidBody = createScenery(dynamicsWorld, slideShape, btVector3(3, 30, 0));
+    btRigidBody* funnelRigidBody = createScenery(dynamicsWorld, funnelShape, btVector3(-3, 38, 0));
+    btRigidBody* bendRigidBody1 = createScenery(dynamicsWorld, bendShape1, btVector3(7, 25, 0));
+    btRigidBody* helixRigidBody = createScenery(dynamicsWorld, helixShape, btVector3(7, 24.5f, 4));
+    btRigidBody* landingRigidBody = createScenery(dynamicsWorld, landingShape, btVector3(7, 0.3, 12));
+   
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 groundModel = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
     view = glm::translate(view, glm::vec3(0.0f, -20.0f, -50.0f));
-    view = glm::rotate(view, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    //view = glm::rotate(view, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
     glm::vec3 translationA(200.0f, 200.0f, 0.0f);
     glm::vec3 translationB(400.0f, 200.0f, 0.0f);
-
+    
     ourShader.setInt("shaderType", 0);
     float ballLapse = 0.0f; // Lapsed time for balls.
 
@@ -318,7 +314,7 @@ int main(void)
         case 15: // key d, scale object smaller
             model = glm::scale(model, glm::vec3(0.99f));
         case 16: // key b, make new ball/ delete old one
-            if (ballLapse > 1) {
+            if (ballLapse > 0.5) {
                 deleteBall(dynamicsWorld, fallRigidBody);
                 fallRigidBody = createBall(dynamicsWorld);
                 ballLapse = 0.0f;
@@ -329,10 +325,16 @@ int main(void)
         dynamicsWorld->stepSimulation(deltaTime, 10);
         btTransform trans;
         btTransform trans3;
-        //btTransform trans4;
+        btTransform trans4;
+        btTransform trans5;
+        btTransform trans6;
+        btTransform trans7;
         fallRigidBody->getMotionState()->getWorldTransform(trans);
         slideRigidBody->getMotionState()->getWorldTransform(trans3);
-        //wedgeRigidBody2->getMotionState()->getWorldTransform(trans4);
+        funnelRigidBody->getMotionState()->getWorldTransform(trans4);
+        bendRigidBody1->getMotionState()->getWorldTransform(trans5);
+        helixRigidBody->getMotionState()->getWorldTransform(trans6);
+        landingRigidBody->getMotionState()->getWorldTransform(trans7);
 
         //physics->Update(deltaTime, 10);
 
@@ -358,10 +360,26 @@ int main(void)
 
         slideModel1.Draw(ourShader);
 
- /*       ourShader.setMatrix4fv("model", glm::translate(model,
+        ourShader.setMatrix4fv("model", glm::translate(model,
             glm::vec3(trans4.getOrigin().getX(), trans4.getOrigin().getY(), trans4.getOrigin().getZ())));
 
-        wedgeModel2.Draw(ourShader);*/
+        funnelModel.Draw(ourShader);
+
+        //ourShader.setMatrix4fv("model", glm::rotate(model, glm::radians(180.0f), glm::vec3(0,50,0)));
+        ourShader.setMatrix4fv("model", glm::translate(model,
+            glm::vec3(trans5.getOrigin().getX(), trans5.getOrigin().getY(), trans5.getOrigin().getZ())));
+        
+        bendModel1.Draw(ourShader);
+
+        ourShader.setMatrix4fv("model", glm::translate(model,
+            glm::vec3(trans6.getOrigin().getX(), trans6.getOrigin().getY(), trans6.getOrigin().getZ())));
+
+        helixModel.Draw(ourShader);
+
+        ourShader.setMatrix4fv("model", glm::translate(model,
+            glm::vec3(trans7.getOrigin().getX(), trans7.getOrigin().getY(), trans7.getOrigin().getZ())));
+
+        landingModel.Draw(ourShader);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -380,6 +398,22 @@ int main(void)
     //delete wedgeRigidBody2->getMotionState();
     //delete wedgeRigidBody2;
 
+    dynamicsWorld->removeRigidBody(bendRigidBody1);
+    delete bendRigidBody1->getMotionState();
+    delete bendRigidBody1;
+
+    dynamicsWorld->removeRigidBody(landingRigidBody);
+    delete landingRigidBody->getMotionState();
+    delete landingRigidBody;
+
+    dynamicsWorld->removeRigidBody(helixRigidBody);
+    delete helixRigidBody->getMotionState();
+    delete helixRigidBody;
+
+    dynamicsWorld->removeRigidBody(funnelRigidBody);
+    delete funnelRigidBody->getMotionState();
+    delete funnelRigidBody;
+
     dynamicsWorld->removeRigidBody(slideRigidBody);
     delete slideRigidBody->getMotionState();
     delete slideRigidBody;
@@ -389,6 +423,10 @@ int main(void)
     delete groundRigidBody->getMotionState();
     delete groundRigidBody;
 
+    delete landingShape;
+    delete helixShape;
+    delete bendShape1;
+    delete funnelShape;
     delete slideShape;
     delete groundShape;
     delete dynamicsWorld;
